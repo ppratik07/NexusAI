@@ -71,8 +71,6 @@ export const createCompletion = async (
                   const parsed = JSON.parse(data);
                   const content = parsed.choices[0].delta.content;
                   if (content) {
-                    //console.log(content);
-                    //Send the response to frontend
                     cb(content);
                   }
                 } catch (e) {

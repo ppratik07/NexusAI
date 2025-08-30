@@ -16,13 +16,14 @@ app.post("/chat", async (req, res) => {
     return res.status(400).json({ message: "Invalid request" });
   }
   let existingMessages = InMemoryStore.getInstance().get(conversationId);
-  res.setHeader('Cache-Control','no-cache');
-  res.setHeader('Content-Type','text/event-stream');
-  res.setHeader('Access-Control-Allow-Origin','*');
-  res.setHeader('Connection','keep-alive');
-  res.flushHeaders(); // flush the headers to establish SSE with client
-  
-  let response = "";
+
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders(); // flush the headers to establish SSE with client
+
+  let message = "";
   // Event Emitters
   await createCompletion(
     [
@@ -34,11 +35,12 @@ app.post("/chat", async (req, res) => {
     ],
     data.model,
     (chunk: string) => {
-      response += chunk;
+      console.log("Chunk from backend:", chunk);
+      message += chunk;
       res.write(chunk);
     }
   );
-  res.end();
+//   res.end();
   InMemoryStore.getInstance().add(conversationId, {
     role: Role.User,
     content: data?.message,
@@ -48,7 +50,7 @@ app.post("/chat", async (req, res) => {
     role: Role.Agent,
     content: data?.message,
   });
-   //store im db
+  //store im db
 });
 
 app.listen(port, () => {

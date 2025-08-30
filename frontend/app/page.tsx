@@ -4,40 +4,55 @@ import { useEffect, useState } from "react";
 
 const BACKEND_URL = "http://localhost:5000";
 
-export default function ChatComponent() {
+export default function Home() {
   const [output, setOutput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchStream = async () => {
-      const response = await fetch(`${BACKEND_URL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: "What is 2+2",
-          model: "deepseek/deepseek-r1",
-        }),
-      });
+      setLoading(true);
+      try {
+        const response = await fetch(`${BACKEND_URL}/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: "What is 2+2",
+            model: "deepseek/deepseek-r1",
+          }),
+        });
 
-      if (!response.body) {
-        console.error("No response body");
-        return;
-      }
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
+        if (!response.body) {
+          throw new Error("No response body received");
+        }
 
-      let result = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
 
-        // decode and append streamed chunk
-        const chunk = decoder.decode(value, { stream: true });
-        console.log('Received chunk:',chunk);
-        result += chunk;
-        setOutput((prev) => prev + chunk);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            console.log("Stream complete");
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          console.log("Received chunk:", chunk);
+
+          // Append chunk to UI
+          setOutput((prev) => prev + chunk);
+        }
+      } catch (err) {
+        console.error("Stream error:", err);
+        setError(err instanceof Error ? err.message : String(err) || "Something went wrong");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -46,8 +61,15 @@ export default function ChatComponent() {
 
   return (
     <div className="p-4">
-      <h2 className="font-bold">AI Response:</h2>
-      <pre className="whitespace-pre-wrap">{output}</pre>
+      <h2 className="font-bold mb-2">AI Response:</h2>
+
+      {error && <p className="text-red-600">Error: {error}</p>}
+
+      {loading && !error && <p className="text-gray-500">Streaming...</p>}
+
+      <pre className="whitespace-pre-wrap text-sm bg-black p-2 rounded-md">
+        {output}
+      </pre>
     </div>
   );
 }
