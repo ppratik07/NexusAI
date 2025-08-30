@@ -14,8 +14,12 @@ app.post("/chat", async (req, res) => {
     return res.status(400).json({ message: "Invalid request" });
   }
   let existingMessages = InMemoryStore.getInstance().get(conversationId);
-  res.setHeader("Content-Type", "text/event-stream;chartset=utf-8");
-  res.setHeader("Connection", "keep-alive");
+  res.setHeader('Cache-Control','no-cache');
+  res.setHeader('Content-Type','text/event-stream');
+  res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Connection','keep-alive');
+  res.flushHeaders(); // flush the headers to establish SSE with client
+  
   let response = "";
   // Event Emitters
   await createCompletion(
@@ -42,7 +46,7 @@ app.post("/chat", async (req, res) => {
     role: Role.Agent,
     content: data?.message,
   });
-  //OpenRouter
+   //store im db
 });
 
 app.listen(port, () => {

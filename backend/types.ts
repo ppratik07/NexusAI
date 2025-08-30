@@ -1,7 +1,11 @@
 import {z} from "zod";
 
 const MAX_INPUT_TOKENS = 1000;
-export const SUPPORTED_MODELS = ["openai/gpt-4o", "openai/gpt-4o-mini"];
+export const SUPPORTED_MODELS = [
+  "openai/gpt-4o",
+  "openai/gpt-4o-mini",
+  "deepseek/deepseek-r1"
+];
 export type MODEL = typeof SUPPORTED_MODELS[number]; 
 
 export const CreateChatSchema = z.object({
