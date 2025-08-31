@@ -20,7 +20,7 @@ export const SignupSchema = z.object({
 
 export const SigninSchema = z.object({
   email: z.email(),
-  otp : z.string().min(6).max(6),
+  otp : z.string(),
 })
 // export type Model = "openai/gpt-4o" | "openai/gpt-4o-mini";
 
