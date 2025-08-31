@@ -19,7 +19,7 @@ export default function Home() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            message: "What is 2+2",
+            message: "What is 4+4",
             model: "deepseek/deepseek-r1",
           }),
         });
@@ -65,7 +65,7 @@ export default function Home() {
 
       {error && <p className="text-red-600">Error: {error}</p>}
 
-      {loading && !error && <p className="text-gray-500">Streaming...</p>}
+      {loading && !error && <p className="text-gray-500">Generating...</p>}
 
       <pre className="whitespace-pre-wrap text-sm bg-black p-2 rounded-md">
         {output}

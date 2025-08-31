@@ -1,29 +1,37 @@
-import {z} from "zod";
+import { email, z } from "zod";
 
 const MAX_INPUT_TOKENS = 1000;
 export const SUPPORTED_MODELS = [
   "openai/gpt-4o",
   "openai/gpt-4o-mini",
-  "deepseek/deepseek-r1"
+  "deepseek/deepseek-r1",
 ];
-export type MODEL = typeof SUPPORTED_MODELS[number]; 
+export type MODEL = (typeof SUPPORTED_MODELS)[number];
 
 export const CreateChatSchema = z.object({
-    conversationId : z.string().optional(),
-    message : z.string().max(MAX_INPUT_TOKENS),
-    model : z.enum(SUPPORTED_MODELS)
-})
+  conversationId: z.string().optional(),
+  message: z.string().max(MAX_INPUT_TOKENS),
+  model: z.enum(SUPPORTED_MODELS),
+});
 
+export const SignupSchema = z.object({
+  email: z.email(),
+});
+
+export const SigninSchema = z.object({
+  email: z.email(),
+  otp : z.string().min(6).max(6),
+})
 // export type Model = "openai/gpt-4o" | "openai/gpt-4o-mini";
 
 export enum Role {
-    Agent = "assistant",
-    User = "user"
+  Agent = "assistant",
+  User = "user",
 }
 
 export type Message = {
   content: string;
   role: Role;
-}
+};
 
 export type Messages = Message[];
