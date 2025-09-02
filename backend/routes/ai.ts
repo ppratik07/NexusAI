@@ -1,51 +1,51 @@
-import {Router} from "express";
+import { Router } from "express";
 import { CreateChatSchema, Role } from "../types";
 import { createCompletion } from "../openrouter";
-import { InMemoryStore } from "../InMemoryStore";    
+import { InMemoryStore } from "../InMemoryStore";
 import { middleware } from "../middleware";
 import { PrismaClient } from "../generated/prisma";
 const router = Router();
 
 const prismaClient = new PrismaClient();
 
-router.get('/conversations',middleware,async(req,res)=>{
-    const userId = req.userId;
-    if(!userId){
-        return res.status(401).json({message: "Unauthorized"});
-    }
-    const conversation = await prismaClient.conversation.findMany({
-        where:{
-            userId
-        }
-    })
-    res.json({conversation});
-})
+router.get("/conversations", middleware, async (req, res) => {
+  const userId = req.userId;
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const conversation = await prismaClient.conversation.findMany({
+    where: {
+      userId,
+    },
+  });
+  res.json({ conversation });
+});
 
-router.get('/conversation/:id/messages',middleware,async(req,res)=>{
-    const userId = req.userId;
-    const conversationId = req.params.conversationId;
-    if(!userId){
-        return res.status(401).json({message: "Unauthorized"});
-    }
-    const conversation = await prismaClient.conversation.findFirst({
-        where: {
-            id: conversationId,
-            userId
+router.get("/conversation/:id/messages", middleware, async (req, res) => {
+  const userId = req.userId;
+  const conversationId = req.params.conversationId;
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const conversation = await prismaClient.conversation.findFirst({
+    where: {
+      id: conversationId,
+      userId,
+    },
+    include: {
+      messages: {
+        orderBy: {
+          createdAt: "asc",
         },
-        include:{
-            messages:{
-                orderBy:{
-                    createdAt: 'asc'
-                }
-            }
-        }
-    })
-    res.json({
-      conversation
-    })
-})
+      },
+    },
+  });
+  res.json({
+    conversation,
+  });
+});
 
-router.post("/chat",middleware, async (req, res) => {
+router.post("/chat", middleware, async (req, res) => {
   const userId = req.userId;
   const { success, data } = CreateChatSchema.safeParse(req.body);
   const conversationId = data?.conversationId || Bun.randomUUIDv7();
@@ -59,11 +59,11 @@ router.post("/chat",middleware, async (req, res) => {
 
   let existingMessages = InMemoryStore.getInstance().get(conversationId);
 
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders(); // flush the headers to establish SSE with client
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders(); // flush the headers to establish SSE with client
 
   let message = "";
   // Event Emitters
@@ -82,7 +82,7 @@ router.post("/chat",middleware, async (req, res) => {
       res.write(chunk);
     }
   );
-//   res.end();
+  //   res.end();
   InMemoryStore.getInstance().add(conversationId, {
     role: Role.User,
     content: data?.message,
@@ -93,40 +93,40 @@ router.post("/chat",middleware, async (req, res) => {
     content: message,
   });
 
-if(!data.conversationId){
-  await prismaClient.conversation.create({
-    data:{
-      userId,
-      messages:{
-        create:[
-          {
-            content : data.message,
-            role: Role.User
-          },
-          {
-            content : message,
-            role: Role.Agent
-          }
-        ]
-      }
-    }
-  })
-}else{
+  if (!data.conversationId) {
+    await prismaClient.conversation.create({
+      data: {
+        id: conversationId,
+        userId,
+        // messages:{
+        //   create:[
+        //     {
+        //       content : data.message,
+        //       role: Role.User
+        //     },
+        //     {
+        //       content : message,
+        //       role: Role.Agent
+        //     }
+        //   ]
+        // }
+      },
+    });
+  }
   // createMany is used to insert multiple messages at once
   await prismaClient.message.createMany({
-    data:[
+    data: [
       {
         conversationId,
         content: message,
-        role: Role.Agent
+        role: Role.Agent,
       },
       {
         conversationId,
-        content : data.message,
-        role: Role.User
-      }
-    ]
-  })
-}
+        content: data.message,
+        role: Role.User,
+      },
+    ],
+  });
 });
 export default router;
