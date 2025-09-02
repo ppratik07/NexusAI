@@ -27,7 +27,7 @@ router.get('/conversation/:id/messages',middleware,async(req,res)=>{
     if(!userId){
         return res.status(401).json({message: "Unauthorized"});
     }
-    const messages = await prismaClient.conversation.findFirst({
+    const conversation = await prismaClient.conversation.findFirst({
         where: {
             id: conversationId,
             userId
@@ -41,7 +41,7 @@ router.get('/conversation/:id/messages',middleware,async(req,res)=>{
         }
     })
     res.json({
-        messages: messages?.messages || [] //CHECK THIS LATER
+      conversation
     })
 })
 
