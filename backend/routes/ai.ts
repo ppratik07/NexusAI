@@ -21,7 +21,7 @@ router.get("/conversations", middleware, async (req, res) => {
   res.json({ conversation });
 });
 
-router.get("/conversation/:id/messages", middleware, async (req, res) => {
+router.get("/conversations/:id", middleware, async (req, res) => {
   const userId = req.userId;
   const conversationId = req.params.conversationId;
   if (!userId) {
@@ -58,6 +58,20 @@ router.post("/chat", middleware, async (req, res) => {
   }
 
   let existingMessages = InMemoryStore.getInstance().get(conversationId);
+  if(!existingMessages.length){
+    const messages = await prismaClient.message.findMany({
+      where :{
+        conversationId
+      }
+    })
+    messages.map((message)=>{
+      InMemoryStore.getInstance().add(conversationId,{
+        role: message.role as Role,
+        content: message.content
+      })
+    })
+    existingMessages = InMemoryStore.getInstance().get(conversationId);
+  }
 
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Content-Type", "text/event-stream");
@@ -96,6 +110,7 @@ router.post("/chat", middleware, async (req, res) => {
   if (!data.conversationId) {
     await prismaClient.conversation.create({
       data: {
+        title: data.message.slice(0, 20) + "...",
         id: conversationId,
         userId,
         // messages:{
@@ -118,13 +133,13 @@ router.post("/chat", middleware, async (req, res) => {
     data: [
       {
         conversationId,
-        content: message,
-        role: Role.Agent,
+        content: data.message,
+        role: Role.User,
       },
       {
         conversationId,
-        content: data.message,
-        role: Role.User,
+        content: message,
+        role: Role.Agent,
       },
     ],
   });

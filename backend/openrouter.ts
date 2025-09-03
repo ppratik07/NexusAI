@@ -1,4 +1,4 @@
-import type { Message, MODEL, SUPPORTED_MODELS, } from "./types";
+import type { Message, MODEL, SUPPORTED_MODELS } from "./types";
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const MAX_TOKEN_ITERATIONS = 1000;
@@ -12,6 +12,7 @@ export const createCompletion = async (
   cb: (chunk: string) => void
 ) => {
   return new Promise<void>((resolve, reject) => {
+    console.log(messages);
     (async () => {
       try {
         const response = await fetch(
@@ -55,10 +56,10 @@ export const createCompletion = async (
             // Process complete lines from buffer
             while (true) {
               const lineEnd = buffer.indexOf("\n");
-              if (lineEnd === -1){
+              if (lineEnd === -1) {
                 resolve();
                 break;
-              };
+              }
 
               const line = buffer.slice(0, lineEnd).trim();
               buffer = buffer.slice(lineEnd + 1);
@@ -71,6 +72,7 @@ export const createCompletion = async (
                   const parsed = JSON.parse(data);
                   const content = parsed.choices[0].delta.content;
                   if (content) {
+                    console.log("content", content);
                     cb(content);
                   }
                 } catch (e) {
