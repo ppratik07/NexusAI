@@ -5,7 +5,8 @@ export const SUPPORTED_MODELS = [
   "openai/gpt-4o",
   "openai/gpt-4o-mini",
   "deepseek/deepseek-r1",
-  "Gemini 2.5 Flash Image Preview"
+  "Gemini 2.5 Flash Image Preview",
+  "gpt-4o"
 ];
 export type MODEL = (typeof SUPPORTED_MODELS)[number];
 

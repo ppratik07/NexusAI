@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { CreateChatSchema, Role } from "../types";
-import { createCompletion } from "../openrouter";
+// import { createCompletion } from "../openrouter";
 import { InMemoryStore } from "../InMemoryStore";
 import { middleware } from "../middleware";
 import { PrismaClient } from "../generated/prisma";
+import { createCompletion } from "../openAIrouter";
 const router = Router();
 
 const prismaClient = new PrismaClient();
@@ -72,7 +73,7 @@ router.post("/chat", middleware, async (req, res) => {
       })
     })
     existingMessages = InMemoryStore.getInstance().get(conversationId);
-    console.log('existing',existingMessages);
+    console.log('existing messages',existingMessages);
   }
 
     res.setHeader('Cache-Control', 'no-cache');
@@ -94,7 +95,6 @@ router.post("/chat", middleware, async (req, res) => {
             // Format as proper SSE data
             res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
         });
-        console.log("Full message:", chat);
         // Send completion signal
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         
@@ -122,7 +122,6 @@ router.post("/chat", middleware, async (req, res) => {
         userId,
       },
     });
-    console.log('aaa',a);
   }
   // createMany is used to insert multiple messages at once
   const b= await prismaClient.message.createMany({
@@ -139,6 +138,5 @@ router.post("/chat", middleware, async (req, res) => {
       },
     ],
   });
-  console.log('bbb',b);
 });
 export default router;
