@@ -8,6 +8,8 @@ import { generateSecret } from "../helpers/generateOTP";
 import { PrismaClient } from "../generated/prisma";
 
 const router = Router();
+// Temporarily adding local user otp cache
+const otpCache = new Map<string, string>();
 
 const prismaClient = new PrismaClient();
 router.post("/signup", async (req, res) => {
@@ -17,8 +19,12 @@ router.post("/signup", async (req, res) => {
       message: "Invalid input",
     });
   }
-  const secret = generateSecret(data.email);
-  const { otp, expires } = TOTP.generate(secret);
+  //const secret = generateSecret(data.email);
+  const { otp, expires } = TOTP.generate(
+    base32.encode(data.email + process.env.JWT_SECRET!)
+  );
+  console.log("email is", data.email);
+  console.log("otp is", otp);
   if (process.env.NODE_ENV === "development") {
     await SendEmmail(
       data.email,
@@ -28,6 +34,7 @@ router.post("/signup", async (req, res) => {
   } else {
     console.log("Generated OTP:", otp, "Expires in:", expires);
   }
+  otpCache.set(data.email, otp);
   try {
     await prismaClient.user.create({
       data: {
@@ -35,7 +42,7 @@ router.post("/signup", async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("User already exists",error);
+    console.log("User already exists", error);
   }
 
   res.json({
@@ -44,7 +51,7 @@ router.post("/signup", async (req, res) => {
   });
 });
 
-router.post("/signin", async(req, res) => {
+router.post("/signin", async (req, res) => {
   const { success, data } = SigninSchema.safeParse(req.body);
   console.log("Data", data);
   console.log("Success", success);
@@ -53,30 +60,28 @@ router.post("/signin", async(req, res) => {
       message: "Invalid inputs",
     });
   }
-  const secret = generateSecret(data.email);
-  const { otp } = TOTP.generate(secret);
+  console.log("otpCache is", otpCache.get(data.email));
 
-  console.log("Generated expected OTP:", otp, "User provided:", data.otp);
-
-  if (data.otp !== otp) {
-    return res.status(401).json({
-      message: "Invalid OTP",
-      success: false,
+  if (otpCache.get(data.email) != data.otp) {
+    console.log("invalid otp");
+    res.status(401).json({
+      message: "Invalid otp",
     });
+    return;
   }
   const user = await prismaClient.user.findFirst({
-    where:{
-      email: data.email
-    }
-  })
-  if(!user){
+    where: {
+      email: data.email,
+    },
+  });
+  if (!user) {
     res.json({
       message: "User not found",
-      success : false,
-    })
-    return
+      success: false,
+    });
+    return;
   }
-  const token = jwt.sign({ userId : user.id }, process.env.JWT_SECRET!, {
+  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
     expiresIn: "7d",
   });
   res.json({
