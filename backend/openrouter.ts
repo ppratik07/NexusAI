@@ -24,7 +24,7 @@ export const createCompletion = async (
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: model,
+              model,
               messages: messages,
               stream: true,
             }),
@@ -44,8 +44,9 @@ export const createCompletion = async (
           while (true) {
             tokenIterations++;
             if (tokenIterations > MAX_TOKEN_ITERATIONS) {
+              console.log("max token iterations");
               resolve();
-              break;
+              return;
             }
             const { done, value } = await reader.read();
             if (done) break;
@@ -57,7 +58,7 @@ export const createCompletion = async (
             while (true) {
               const lineEnd = buffer.indexOf("\n");
               if (lineEnd === -1) {
-                resolve();
+                console.log("max token iterations 2");
                 break;
               }
 
@@ -70,9 +71,9 @@ export const createCompletion = async (
 
                 try {
                   const parsed = JSON.parse(data);
-                  const content = parsed.choices[0].delta.content;
+                  const content = parsed.choices?.[0]?.delta?.content;
                   if (content) {
-                    console.log("content", content);
+                    console.log("getting content", content);
                     cb(content);
                   }
                 } catch (e) {
@@ -81,12 +82,14 @@ export const createCompletion = async (
               }
             }
           }
-        } finally {
-          reader.cancel();
-        }
-      } catch (err) {
+           } finally {
+            resolve()
+            reader.cancel();
+          }
+      } 
+      catch (err) {
         reject(err);
       }
-    })();
+    })
   });
 };
