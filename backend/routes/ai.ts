@@ -96,7 +96,6 @@ router.post("/chat", middleware, async (req, res) => {
       ],
       data.model,
       (chunk: string) => {
-        console.log("Chunk from backend:", chunk);
         message += chunk;
         // Format as proper SSE data
         res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
