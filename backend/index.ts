@@ -1,12 +1,7 @@
 import express from "express";
-import { CreateChatSchema, Role } from "./types";
-import { createCompletion } from "./openrouter";
-import { InMemoryStore } from "./InMemoryStore";
 import cors from "cors";
 import authRouter from "./routes/auth";
 import aiRouter from "./routes/ai";
-import { middleware } from "./middleware";
-import { PrismaClient } from "./generated/prisma";
 
 const app = express();
 const port = 5000;
