@@ -32,8 +32,6 @@ export const createCompletion = async (
           }),
         });
 
-        console.log("Response received", response);
-
         const reader = response.body?.getReader();
         if (!reader) {
           throw new Error("Response body is not readable");

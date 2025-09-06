@@ -16,8 +16,8 @@ interface Message {
   id: string;
   content: string;
   role: "user" | "assistant";
-  timestamp: Date;
-  formattedTimestamp: string; 
+  timestamp?: Date;
+  formattedTimestamp?: string; 
 }
 
 interface Conversation {
@@ -285,8 +285,8 @@ export function ChatInterface() {
                             id: msg.id,
                             content: msg.content,
                             role,
-                            timestamp: new Date(msg.timestamp),
-                            formattedTimestamp: format(new Date(msg.timestamp), 'HH:mm:ss'), // Pre-format
+                            // timestamp: new Date(msg.timestamp),
+                            // formattedTimestamp: format(new Date(msg.timestamp), 'HH:mm:ss'), // Pre-format
                         } as Message;
                     });
 

@@ -22,7 +22,7 @@ router.get("/conversations", middleware, async (req, res) => {
   res.json({ conversation });
 });
 
-router.get("/conversations/:id", middleware, async (req, res) => {
+router.get("/conversations/:conversationId", middleware, async (req, res) => {
   const userId = req.userId;
   const conversationId = req.params.conversationId;
   if (!userId) {
