@@ -2,7 +2,7 @@ import type { Message, MODEL, SUPPORTED_MODELS } from "./types";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const MAX_TOKEN_ITERATIONS = 1000;
-
+//http://localhost:12434/engines/llama.cpp/v1
 if (!OPENAI_API_KEY) {
   throw new Error("Missing OPENAI_API_KEY environment variable");
 }

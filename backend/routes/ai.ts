@@ -5,6 +5,7 @@ import { InMemoryStore } from "../InMemoryStore";
 import { middleware } from "../middleware";
 import { PrismaClient } from "../generated/prisma";
 import { createCompletion } from "../openAIrouter";
+import { createCompletionGemini } from "../openGeminiRouter";
 const router = Router();
 
 const prismaClient = new PrismaClient();
